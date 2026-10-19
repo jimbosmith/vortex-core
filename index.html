@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VORTEX CORE — Kinetic Ring Labyrinth</title>
+    <meta name="description" content="Tactile physics puzzle game: use Left-Click and Right-Click to spin concentric slotted rings and guide marbles into the gravity core.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="app-shell">
+
+        <!-- Floating Top Glass HUD -->
+        <header class="hud-bar">
+            <div class="brand-cluster">
+                <div class="core-emblem">
+                    <div class="emblem-ring"></div>
+                    <div class="emblem-dot"></div>
+                </div>
+                <div class="brand-text">
+                    <h1 class="brand-title">VORTEX CORE</h1>
+                    <span class="brand-sub">KINETIC GRAVITY LABYRINTH</span>
+                </div>
+            </div>
+
+            <div class="telemetry-strip">
+                <div class="metric-box">
+                    <span class="metric-label">LEVEL</span>
+                    <span id="hudLevel" class="metric-val">1</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">RINGS</span>
+                    <span id="hudRings" class="metric-val">2</span>
+                </div>
+                <div class="metric-box primary">
+                    <span class="metric-label">CORE CAPTURED</span>
+                    <span id="hudBalls" class="metric-val">0 / 16</span>
+                    <div class="mini-progress">
+                        <div id="goalProgressBar" class="mini-progress-fill"></div>
+                    </div>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">COMBO</span>
+                    <span id="hudCombo" class="metric-val accent-gold">x1</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">SCORE</span>
+                    <span id="hudScore" class="metric-val">0</span>
+                </div>
+            </div>
+
+            <div class="action-cluster">
+                <button id="btnPulse" class="hud-btn pulse-btn" title="Shockwave Surge (Spacebar)">
+                    <span class="btn-icon">⚡</span>
+                    <span>SURGE</span>
+                </button>
+                <button id="btnReset" class="hud-btn" title="Reset Level (R)">
+                    <span class="btn-icon">↻</span>
+                    <span>RESET</span>
+                </button>
+                <button id="btnSound" class="hud-btn" title="Toggle Audio">
+                    <span id="soundIcon" class="btn-icon">🔊</span>
+                </button>
+                <button id="btnHelp" class="hud-btn" title="Controls & Rules">
+                    <span class="btn-icon">?</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Interactive Stage -->
+        <main class="viewport" id="canvasWrapper">
+            <canvas id="gameCanvas"></canvas>
+
+            <!-- Floating Mouse Controls Legend Pill (Bottom Left) -->
+            <div class="controls-dock left-dock">
+                <div class="mouse-guide">
+                    <div class="mouse-pill ccw-pill" id="indicatorLMB">
+                        <span class="mouse-icon">🖱️ L-CLICK</span>
+                        <div class="mouse-text">
+                            <strong>ANTICLOCKWISE ↺</strong>
+                            <span>Hold or click on ring</span>
+                        </div>
+                    </div>
+                    <div class="mouse-pill cw-pill" id="indicatorRMB">
+                        <span class="mouse-icon">R-CLICK 🖱️</span>
+                        <div class="mouse-text">
+                            <strong>↻ CLOCKWISE</strong>
+                            <span>Hold or click on ring</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Ring Selector & Status Pill (Bottom Center) -->
+            <div id="ringStatusBanner" class="ring-status-banner">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusRingText">Hover any ring • Left-Click ↺ | Right-Click ↻</span>
+            </div>
+
+            <!-- Quick Ring Layer Dock (Bottom Right) -->
+            <div class="controls-dock right-dock">
+                <div class="dock-header">RING LAYERS</div>
+                <div id="ringControlList" class="ring-layer-pills">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Level Complete Modal -->
+            <div id="levelModal" class="modal-backdrop hidden">
+                <div class="modal-card">
+                    <div class="modal-glow"></div>
+                    <div class="modal-tag">SINGULARITY HARVEST COMPLETE</div>
+                    <h2 id="modalTitle" class="modal-heading">LEVEL 1 CLEARED</h2>
+                    <p id="modalSubtitle" class="modal-desc">Every kinetic sphere has been drawn into the core.</p>
+
+                    <div class="modal-metrics">
+                        <div class="m-stat">
+                            <span class="m-label">ORBS SUNK</span>
+                            <strong id="modalBalls" class="m-val">16 / 16</strong>
+                        </div>
+                        <div class="m-stat">
+                            <span class="m-label">CLEAR TIME</span>
+                            <strong id="modalTime" class="m-val">00:18</strong>
+                        </div>
+                        <div class="m-stat">
+                            <span class="m-label">TIME BONUS</span>
+                            <strong id="modalBonus" class="m-val gold">+650</strong>
+                        </div>
+                    </div>
+
+                    <button id="btnNextLevel" class="cta-btn">
+                        <span>NEXT LEVEL — ADD RING LAYER</span>
+                        <span class="cta-arrow">➔</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- How to Play Modal -->
+            <div id="helpModal" class="modal-backdrop hidden">
+                <div class="modal-card">
+                    <div class="modal-tag">TACTILE CONTROLS & PHYSICS</div>
+                    <h2 class="modal-heading">HOW TO PLAY</h2>
+                    <div class="help-grid">
+                        <div class="help-item">
+                            <div class="help-badge">↺</div>
+                            <div>
+                                <strong>Left-Click (Hold or Tap)</strong>
+                                <p>Spins the hovered concentric ring <strong>Anticlockwise (Counter-Clockwise)</strong> with smooth rotational inertia.</p>
+                            </div>
+                        </div>
+                        <div class="help-item">
+                            <div class="help-badge purple">↻</div>
+                            <div>
+                                <strong>Right-Click (Hold or Tap)</strong>
+                                <p>Spins the hovered concentric ring <strong>Clockwise</strong>. You can also use the <strong>Mouse Scroll Wheel</strong> or <code>A / D</code> keys!</p>
+                            </div>
+                        </div>
+                        <div class="help-item">
+                            <div class="help-badge gold">🎯</div>
+                            <div>
+                                <strong>Realistic Rolling & Rounded Gates</strong>
+                                <p>Marbles roll along spinning rings with real angular momentum, bounce off rounded slot corners, and funnel into the central gravity well.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="btnCloseHelp" class="cta-btn">RESUME SIMULATION</button>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <script src="js/vortex.js"></script>
+</body>
+</html>
